@@ -4,6 +4,8 @@ import numpy as np
 from matplotlib.ticker import MaxNLocator
 import time
 import os
+import subprocess
+import argparse
 
 def execute_traceroute(destination):
     """
@@ -15,13 +17,10 @@ def execute_traceroute(destination):
     Returns:
         str: The raw output from the traceroute command
     """
-    # Your code here
-    # Hint: Use the subprocess module to run the traceroute command
-    # Make sure to handle potential errors
 
-    # Remove this line once you implement the function,
-    # and don't forget to *return* the output
-    pass
+    trace = subprocess.run(["traceroute", "-I", destination], stdout=subprocess.PIPE)
+
+    return trace.stdout.decode('utf-8')
 
 def parse_traceroute(traceroute_output):
     """
@@ -61,12 +60,9 @@ def parse_traceroute(traceroute_output):
         ]
     ```
     """
-    # Your code here
-    # Hint: Use regular expressions to extract the relevant information
-    # Handle timeouts (asterisks) appropriately
 
-    # Remove this line once you implement the function,
-    # and don't forget to *return* the output
+
+
     pass
 
 # ============================================================================ #
