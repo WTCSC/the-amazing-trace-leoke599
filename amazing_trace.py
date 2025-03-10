@@ -6,6 +6,7 @@ import time
 import os
 import subprocess
 import argparse
+import re
 
 def execute_traceroute(destination):
     """
@@ -20,7 +21,9 @@ def execute_traceroute(destination):
 
     trace = subprocess.run(["traceroute", "-I", destination], stdout=subprocess.PIPE)
 
-    return trace.stdout.decode('utf-8')
+    traceroute_output = trace.stdout.decode('utf-8')
+
+    return traceroute_output
 
 def parse_traceroute(traceroute_output):
     """
@@ -61,9 +64,60 @@ def parse_traceroute(traceroute_output):
     ```
     """
 
+    address_info = []
 
+    split = traceroute_output.split("\n")
+    split = split[1:-1]
 
-    pass
+    counter = 0
+
+    while counter < len(split):
+        parts = split[counter].split()
+
+        if '*' in parts:
+            hop_number = int(parts[0])
+            address_info2 = {
+                'hop': hop_number,
+                'ip': None,
+                'hostname': None,
+                'rtt': [None, None, None]
+            }
+        else:
+            if len(parts) < 8:
+                counter += 1
+                continue
+
+            hop_number = int(parts[0])
+            ip_address = parts[2]
+            ip_address = re.sub(r"\(|\)", "", ip_address)
+            hostname = parts[1]
+            rtt = [float(parts[3]), float(parts[5]), float(parts[7])]
+            address_info2 = {
+                'hop': hop_number,
+                'ip': ip_address,
+                'hostname': hostname,
+                'rtt': rtt
+            }
+        address_info.append(address_info2)
+        counter += 1
+
+    # Create a list to hold the formatted strings
+    formatted_info = ["["]
+
+    # Manually format the address_info list
+    for i, info in enumerate(address_info):
+        rtt_str = f"[{', '.join(map(str, info['rtt']))}]"
+        ip_str = f"'{info['ip']}'" if info['ip'] is not None else "None"
+        hostname_str = f"'{info['hostname']}'" if info['hostname'] is not None else "None"
+        formatted_info.append(f"    {{\n        'hop': {info['hop']},\n        'ip': {ip_str},\n        'hostname': {hostname_str},\n        'rtt': {rtt_str}\n    }}")
+        if i < len(address_info) - 1:
+            formatted_info[-1] += ","
+
+    # Add the closing bracket for the list
+    formatted_info.append("]")
+
+    # Join the list into a single string with new lines
+    return "\n".join(formatted_info)
 
 # ============================================================================ #
 #                    DO NOT MODIFY THE CODE BELOW THIS LINE                    #
